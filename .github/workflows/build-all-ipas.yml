@@ -1,0 +1,139 @@
+name: Build All IPAs
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build-iJackOff:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build iJackOff IPA
+        working-directory: iJackOff
+        run: |
+          # Create app structure
+          mkdir -p build/iJackOff.app
+          
+          # Compile with Xcode
+          xcrun -sdk iphoneos clang -arch arm64 -fPIC -fobjc-arc \
+            main.m XXXAppDelegate.m XXXRootViewController.m \
+            -framework UIKit -framework CoreGraphics \
+            -o build/iJackOff.app/iJackOff
+          
+          # Create Info.plist
+          cat > build/iJackOff.app/Info.plist << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDevelopmentRegion</key>
+            <string>en</string>
+            <key>CFBundleExecutable</key>
+            <string>iJackOff</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.codeymoore.ijackoff</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>CFBundleName</key>
+            <string>iJackOff</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>CFBundleVersion</key>
+            <string>1</string>
+            <key>LSRequiresIPhoneOS</key>
+            <true/>
+            <key>UIMainStoryboardFile</key>
+            <string>Main</string>
+            <key>UISupportedInterfaceOrientations</key>
+            <array>
+              <string>UIInterfaceOrientationPortrait</string>
+            </array>
+          </dict>
+          </plist>
+          PLIST
+          
+          # Copy resources if they exist
+          if [ -d Resources ]; then cp -r Resources/* build/iJackOff.app/ 2>/dev/null || true; fi
+          
+          # Create IPA
+          mkdir -p build/Payload
+          mv build/iJackOff.app build/Payload/
+          cd build && zip -r iJackOff.ipa Payload/ && cd ..
+      
+      - name: Upload iJackOff IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: iJackOff-ipa
+          path: iJackOff/build/iJackOff.ipa
+
+  build-iJackOffHQ:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build iJackOffHQ IPA
+        working-directory: iJackOff-HQPorner
+        run: |
+          # Create app structure
+          mkdir -p build/iJackOffHQ.app
+          
+          # Compile with Xcode
+          xcrun -sdk iphoneos clang -arch arm64 -fPIC -fobjc-arc \
+            main.m XXAppDelegate.m XXRootViewController.m \
+            -framework UIKit -framework CoreGraphics \
+            -o build/iJackOffHQ.app/iJackOffHQ
+          
+          # Create Info.plist
+          cat > build/iJackOffHQ.app/Info.plist << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDevelopmentRegion</key>
+            <string>en</string>
+            <key>CFBundleExecutable</key>
+            <string>iJackOffHQ</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.codeymoore.ijackoffhq</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>CFBundleName</key>
+            <string>iJackOff HQ</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>CFBundleVersion</key>
+            <string>1</string>
+            <key>LSRequiresIPhoneOS</key>
+            <true/>
+            <key>UIMainStoryboardFile</key>
+            <string>Main</string>
+            <key>UISupportedInterfaceOrientations</key>
+            <array>
+              <string>UIInterfaceOrientationPortrait</string>
+            </array>
+          </dict>
+          </plist>
+          PLIST
+          
+          # Copy resources if they exist
+          if [ -d Resources ]; then cp -r Resources/* build/iJackOffHQ.app/ 2>/dev/null || true; fi
+          
+          # Create IPA
+          mkdir -p build/Payload
+          mv build/iJackOffHQ.app build/Payload/
+          cd build && zip -r iJackOffHQ.ipa Payload/ && cd ..
+      
+      - name: Upload iJackOffHQ IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: iJackOffHQ-ipa
+          path: iJackOff-HQPorner/build/iJackOffHQ.ipa
